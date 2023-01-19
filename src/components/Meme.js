@@ -1,43 +1,101 @@
 import "./components.css"
+import React from "react"
 import { memes } from '../data/memesData';
-import React from "react";
 
 
-const Meme = () =>{
 
-    const  [meme, setMemeInfo] = React.useState(
-        {
-            topText:"",
-            bottomText:"",
-            randomImage:"http://i.imgflip.com/1bij.jpg",
-        }
-    )
+const Meme = () => {
+    /**
+     * Challenge:
+     * As soon as the Meme component loads the first time,
+     * make an API call to "https://api.imgflip.com/get_memes".
+     *
+     * When the data comes in, save just the memes array part
+     * of that data to the `allMemes` state
+     *
+     * Think about if there are any dependencies that, if they
+     * changed, you'd want to cause to re-run this function.
+     *
+     * Hint: for now, don't try to use an async/await function.
+     * Instead, use `.then()` blocks to resolve the promises
+     * from using `fetch`. We'll learn why after this challenge.
+     */
 
-    const [allMemeImages] = React.useState(memes)
+    const [meme, setMeme] = React.useState({
+        topText: "",
+        bottomText: "",
+        randomImage: "http://i.imgflip.com/1bij.jpg"
+    })
+    const [allMemes, setAllMemes] = React.useState(memes)
 
-    function randomMeme() {
-        const keys = allMemeImages.data.memes;
-        const randomNum = Math.floor(Math.random() * keys.length);
-        setMemeInfo(prevData => {
-            return{
-                ...prevData,
-                randomImage: keys[randomNum].url
-            }
-        })
+
+    // React.useEffect(() => {
+    //     fetch("https://api.imgflip.com/get_memes")
+    //     .then(respone => respone.json())
+    //     .then(fetchedData => setAllMemes(fetchedData.data.memes))
+    // }, [])
+
+
+    React.useEffect(() => {
+        fetch("https://api.imgflip.com/get_memes")
+        .then(resp => resp.json())
+        .then(fetchedData => setAllMemes(fetchedData))
+    }, [meme])
+
+
+    function getMemeImage() {
+        const memesArray = allMemes.data.memes
+        const randomNumber = Math.floor(Math.random() * memesArray.length)
+        const url = memesArray[randomNumber].url
+        setMeme(prevMeme => ({
+            ...prevMeme,
+            randomImage: url
+        }))
+
     }
 
-    return(
+    function handleChange(event) {
+        const {name, value} = event.target
+        setMeme(prevMeme => ({
+            ...prevMeme,
+            [name]: value
+        }))
+    }
+
+    return (
         <main>
             <div className="form">
-                <input type="text" className="form--input" placeholder="Top text"/>
-                <input type="text" className="form--input" placeholder="Bottom text"/>
-                <button onClick={randomMeme} className="form--button">Get a new meme image 🖼</button>
+                <input
+                    type="text"
+                    placeholder="Top text"
+                    className="form--input"
+                    name="topText"
+                    value={meme.topText}
+                    onChange={handleChange}
+                />
+                <input
+                    type="text"
+                    placeholder="Bottom text"
+                    className="form--input"
+                    name="bottomText"
+                    value={meme.bottomText}
+                    onChange={handleChange}
+                />
+                <button
+                    className="form--button"
+                    onClick={getMemeImage}
+                >
+                    Get a new meme image 🖼
+                </button>
             </div>
-            <div>
-                <img src={meme.randomImage} alt="not found" className="meme--image"/>
+            <div className="meme">
+                <img src={meme.randomImage} className="meme--image" alt="not found" />
+                <h2 className="meme--text top">{meme.topText}</h2>
+                <h2 className="meme--text bottom">{meme.bottomText}</h2>
             </div>
         </main>
-    );
+    )
 }
 
-export {Meme};
+
+export {Meme}
